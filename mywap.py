@@ -9,9 +9,12 @@ import MySQLdb
 
 DEBUG = 1
 def sendWap(phoneNum,userText):
-    resultStatus = 0
-    #python yowsup-cli -c config.example -w -s 79196967748 "мое сообщение"
-    sendResult = subprocess.Popen(["/usr/bin/python",
+    attempts = 0
+    while attempts < 3:
+        resultStatus = 0
+        try:
+    	    #python yowsup-cli -c config.example -w -s 79196967748 "мое сообщение"
+    	    sendResult = subprocess.Popen(["/usr/bin/python",
 				"/home/pi/Soft/yowsupOld/yowsup/src/yowsup-cli",
 				"-c",
 				"/home/pi/Soft/yowsupOld/yowsup/src/config.example",
@@ -19,13 +22,17 @@ def sendWap(phoneNum,userText):
 				"-s",
 				phoneNum,
 				userText], stdout=subprocess.PIPE).stdout.read()
-    #'Authed 79375298473\nSent message\nGot sent receipt\n'
-    sendResultArray=re.split("\n", sendResult)
-    #['Authed 79375298473', 'Sent message', 'Got sent receipt', '']
-    sendResultArrayOK = ['Authed 79375298473', 'Sent message', 'Got sent receipt', '']
-    for i in xrange(len(sendResultArray)):
-	if sendResultArray[i]==sendResultArrayOK[i]: 
-	     resultStatus+=2**i
+    	    #'Authed 79375298473\nSent message\nGot sent receipt\n'
+            if DEBUG: print "Attempts={2} PhoneNum={0} sendResult={1}".format(phoneNum,sendResult,attempts)
+            sendResultArray=re.split("\n", sendResult)
+            #['Authed 79375298473', 'Sent message', 'Got sent receipt', '']
+            sendResultArrayOK = ['Authed 79375298473', 'Sent message', 'Got sent receipt', '']
+    	    for i in xrange(len(sendResultArray)):
+		if sendResultArray[i]==sendResultArrayOK[i]: 
+	     	    resultStatus+=2**i
+	    break
+	except IndexError:
+            attempts += 1
     return resultStatus
 
 def textPrepare(time, name, text):
